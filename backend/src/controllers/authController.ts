@@ -12,6 +12,9 @@ const register = async (req: Request, res: Response) => {
     const user: NewUser = {
         email,
         password: hashedPassword,
+        created_at: new Date(),
+        updated_at: new Date(),
+        logout_at: new Date(),
     };
 
     try {

@@ -5,11 +5,17 @@ interface User extends RowDataPacket {
     id?: number;
     email: string;
     password: string;
+    created_at: Date;
+    updated_at: Date;
+    logout_at: Date;
 }
 
 interface NewUser {
     email: string;
     password: string;
+    created_at: Date;
+    updated_at: Date;
+    logout_at: Date;
 }
 
 const createUser = async (user: NewUser) => {
