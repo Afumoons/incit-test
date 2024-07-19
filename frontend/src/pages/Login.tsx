@@ -8,7 +8,7 @@ const Login: React.FC = () => {
       <h1>Login</h1>
       <LoginForm />
       <Link to="/">Home</Link>
-      <Link to="/register">Login</Link>
+      <Link to="/register">Register</Link>
     </>
   );
 };
