@@ -80,4 +80,34 @@ const getAllUsers = async (): Promise<User[]> => {
     return rows;
 };
 
-export { createUser, updateUserLoginInfo, updateUserLogoutInfo, findUserByEmail, findUserById, User, NewUser };
+// Get total number of users
+const getTotalUsers = async (): Promise<number> => {
+    const query = 'SELECT COUNT(*) as count FROM users';
+    const [rows] = await pool.execute(query);
+    const result = rows as RowDataPacket[];
+    return result[0].count;
+};
+
+// Get total number of users with active sessions today
+const getActiveUsersToday = async (): Promise<number> => {
+    const query = 'SELECT COUNT(*) as count FROM users WHERE DATE(updated_at) = CURDATE()';
+    const [rows] = await pool.execute(query);
+    const result = rows as RowDataPacket[];
+    return result[0].count;
+};
+
+// Get average number of active session users in the last 7 days
+const getAverageActiveUsersLast7Days = async (): Promise<number> => {
+    const query = `
+        SELECT AVG(daily_count) as avg_count FROM (
+            SELECT COUNT(*) as daily_count 
+            FROM users 
+            WHERE updated_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            GROUP BY DATE(updated_at)
+        ) as daily_counts`;
+    const [rows] = await pool.execute(query);
+    const result = rows as RowDataPacket[];
+    return result[0].avg_count;
+};
+
+export { createUser, updateUserLoginInfo, updateUserLogoutInfo, findUserByEmail, findUserById, getTotalUsers, getActiveUsersToday, getAverageActiveUsersLast7Days, User, NewUser };

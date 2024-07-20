@@ -3,7 +3,7 @@ import {
     register, login, logout, googleAuth, googleAuthCallback, googleAuthRedirect,
     //facebookAuth, facebookAuthCallback, facebookAuthRedirect
 } from '../controllers/authController';
-import { getAllUsers } from '../controllers/userController';
+import { getAllUsers, getTotalUserStatistics } from '../controllers/userController';
 
 const router = Router();
 
@@ -11,6 +11,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/users', getAllUsers);
+router.get('/dashboard-statistic', getTotalUserStatistics);
 
 // Google OAuth routes
 router.get('/google', googleAuth);

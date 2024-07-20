@@ -18,5 +18,8 @@ const getAllUsers = () => {
     return axios.get(`${API_URL}/users`);
 };
 
+const getDashboardStatistics = () => {
+    return axios.get(`${API_URL}/dashboard-statistic`);
+};
 
-export { register, login, logout, getAllUsers };
+export { register, login, logout, getAllUsers, getDashboardStatistics };
