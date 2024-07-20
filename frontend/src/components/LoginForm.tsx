@@ -15,13 +15,22 @@ const LoginForm: React.FC = () => {
 
       const { token } = response.data;
 
-      // Save the token in cookies
-      Cookies.set("token", token, { expires: 1 }); // Expires in 1 day
+      // Save the token in localstorage cookies
+      Cookies.set("token", token);
+      // localStorage.setItem("token", token);
 
       navigate("/dashboard");
     } catch (err) {
       console.error("Login failed", err);
     }
+  };
+
+  const googleLogin = () => {
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
+
+  const facebookLogin = () => {
+    window.location.href = "http://localhost:5000/api/auth/facebook";
   };
 
   return (
@@ -43,6 +52,8 @@ const LoginForm: React.FC = () => {
         />
       </div>
       <button type="submit">Login</button>
+      <button onClick={googleLogin}>Login with Google</button>
+      <button onClick={facebookLogin}>Login with Facebook</button>
     </form>
   );
 };
