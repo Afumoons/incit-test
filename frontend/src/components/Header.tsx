@@ -6,6 +6,13 @@ import { logout } from "../services/authService";
 const Header: React.FC = () => {
   const token = Cookies.get("token");
 
+  const handleLogout = async () => {
+    await logout(Cookies.get("email"));
+    Cookies.remove("email");
+    Cookies.remove("token");
+    window.location.href = "/login"; // Redirect to login page
+  };
+
   return (
     <header className="bg-white shadow">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -26,11 +33,7 @@ const Header: React.FC = () => {
                 </li>
                 <li>
                   <button
-                    onClick={async () => {
-                      await logout();
-                      Cookies.remove("token");
-                      window.location.href = "/login"; // Redirect to login page
-                    }}
+                    onClick={handleLogout}
                     className="text-red-500 hover:underline"
                   >
                     Logout

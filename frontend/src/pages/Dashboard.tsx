@@ -1,23 +1,32 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { logout } from "../services/authService";
-import Cookies from "js-cookie";
+import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import axios from "axios";
+import { getAllUsers } from "../services/authService";
+
+interface User {
+  id: number;
+  email: string;
+  created_at: Date;
+  login_count: number;
+  logout_at: Date;
+}
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
+  const [users, setUsers] = useState<User[]>([]);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      Cookies.remove("token");
-      navigate("/login"); // Redirect to login page or home page
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await getAllUsers();
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching users", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gray-100">
@@ -29,20 +38,30 @@ const Dashboard: React.FC = () => {
         <p className="text-center text-gray-600 mb-8">
           Here is your dashboard content.
         </p>
-        <div className="text-center">
-          <Link
-            to="/"
-            className="text-white bg-blue-500 px-4 py-2 rounded hover:bg-blue-600 mr-4"
-          >
-            Home
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="text-white bg-red-500 px-4 py-2 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
-        </div>
+        <table className="w-full border-collapse border border-gray-300">
+          <thead className="bg-gray-200">
+            <tr className="border border-gray-300">
+              <th className="px-4 py-2">Email</th>
+              <th className="px-4 py-2">Sign Up Timestamp</th>
+              <th className="px-4 py-2">Login Count</th>
+              <th className="px-4 py-2">Last Logout Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td>{user.email}</td>
+                <td>{new Date(user.created_at).toLocaleString()}</td>
+                <td>{user.login_count}</td>
+                <td>
+                  {user.logout_at
+                    ? new Date(user.logout_at).toLocaleString()
+                    : "N/A"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </main>
       <Footer />
     </div>

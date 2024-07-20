@@ -14,8 +14,9 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
     try {
       const response = await login(email, password);
-      const { token } = response.data;
+      const { token, user } = response.data;
       Cookies.set("token", token);
+      Cookies.set("email", user.email);
       navigate("/dashboard");
     } catch (err) {
       console.error("Login failed", err);

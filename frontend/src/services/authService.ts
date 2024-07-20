@@ -10,13 +10,13 @@ const login = (email: string, password: string) => {
     return axios.post(`${API_URL}/login`, { email, password });
 };
 
-const logout = async () => {
-    try {
-        await axios.post(`${API_URL}/logout`);
-    } catch (error) {
-        console.error("Logout failed:", error);
-        throw error; // Optionally re-throw the error to handle it in the component
-    }
+const logout = (email: string | undefined) => {
+    return axios.post(`${API_URL}/logout`, { email });
 };
 
-export { register, login, logout };
+const getAllUsers = () => {
+    return axios.get(`${API_URL}/users`);
+};
+
+
+export { register, login, logout, getAllUsers };

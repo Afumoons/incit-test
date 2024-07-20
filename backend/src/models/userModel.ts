@@ -2,27 +2,25 @@ import pool from '../utils/db';
 import { RowDataPacket } from 'mysql2';
 
 interface User extends RowDataPacket {
-    id?: number;
+    id: number;
+    name: string;
     email: string;
     password: string;
     created_at: Date;
     updated_at: Date;
+    login_count: number;
+    last_login_at: Date;
     logout_at: Date;
 }
 
-interface NewUser {
-    id?: number;
-    email: string;
-    password: string;
-    created_at: Date;
-    updated_at: Date;
-    logout_at: Date;
+interface NewUser extends Omit<User, 'id' | 'login_count'> {
+    login_count?: number;
 }
 
 const createUser = async (user: NewUser) => {
     const [result] = await pool.query(
-        'INSERT INTO users (email, password) VALUES (?, ?)',
-        [user.email, user.password]
+        'INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, NOW())',
+        [user.name, user.email, user.password, user.created_at]
     );
     return result;
 };
@@ -46,10 +44,23 @@ const findUserById = async (id: number | string): Promise<User | null> => {
     return null;
 };
 
-const updateUser = async (id: number, user: User) => {
+export const findAllUsers = async (): Promise<User[]> => {
+    const [rows] = await pool.query('SELECT * FROM users');
+    return rows as User[];
+};
+
+const updateUserLoginInfo = async (id: number, user: User) => {
     const [result] = await pool.query(
-        'UPDATE users SET email = ?, password = ?, updated_at = ?, logout_at = ? WHERE id = ?',
-        [user.email, user.password, user.updated_at, user.logout_at, id]
+        'UPDATE users SET login_count = ?, last_login_at = ?, updated_at = ? WHERE id = ?',
+        [user.login_count, user.last_login_at, user.updated_at, id]
+    );
+    return result;
+};
+
+const updateUserLogoutInfo = async (id: number, user: User) => {
+    const [result] = await pool.query(
+        'UPDATE users SET logout_at = ?, updated_at = ? WHERE id = ?',
+        [user.logout_at, user.updated_at, id]
     );
     return result;
 };
@@ -69,4 +80,4 @@ const getAllUsers = async (): Promise<User[]> => {
     return rows;
 };
 
-export { createUser, findUserByEmail, findUserById, User, NewUser };
+export { createUser, updateUserLoginInfo, updateUserLogoutInfo, findUserByEmail, findUserById, User, NewUser };
