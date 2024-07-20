@@ -7,6 +7,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import dotenv from 'dotenv';
+import Joi from 'joi';
 
 dotenv.config();
 
@@ -131,8 +132,27 @@ const googleAuthRedirect = (req: Request, res: Response) => {
 //     res.redirect('/dashboard');
 // };
 
+// Joi schema for registration validation
+const registerSchema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string()
+        .min(8)
+        .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\\d!@#$%^&*(),.?":{}|<>]{8,}$'))
+        .required(),
+    confirmPassword: Joi.any().valid(Joi.ref('password')).required().messages({ 'any.only': 'Passwords must match' })
+});
+
+
 const register = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password, confirmPassword } = req.body;
+
+    // Validate request body against schema
+    const { error } = registerSchema.validate({ email, password, confirmPassword });
+
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user: NewUser = {
