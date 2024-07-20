@@ -70,6 +70,10 @@ const RegisterForm: React.FC = () => {
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
+  const facebookLogin = () => {
+    window.location.href = "http://localhost:5000/api/auth/facebook";
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
@@ -138,12 +142,17 @@ const RegisterForm: React.FC = () => {
       <hr />
       <div className="flex items-center justify-center space-x-4">
         <button
+          type="button"
           onClick={googleLogin}
           className="w-full px-4 py-2 font-bold text-white bg-red-500 rounded-lg hover:bg-red-600"
         >
           Google
         </button>
-        <button className="w-full px-4 py-2 font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+        <button
+          type="button"
+          onClick={facebookLogin}
+          className="w-full px-4 py-2 font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800"
+        >
           Facebook
         </button>
       </div>
