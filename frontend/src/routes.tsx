@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
+import GuestRoute from "./components/GuestRoute";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -15,8 +16,8 @@ const AppRoutes: React.FC = () => {
           path="/dashboard"
           element={<PrivateRoute component={Dashboard} />}
         />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<GuestRoute component={Login} />} />
+        <Route path="/register" element={<GuestRoute component={Register} />} />
       </Routes>
     </Router>
   );
