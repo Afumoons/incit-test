@@ -44,38 +44,39 @@ passport.use(new GoogleStrategy({
     }
 }));
 
-// // Passport setup for Facebook strategy
-// passport.use(new FacebookStrategy({
-//     clientID: process.env.FACEBOOK_CLIENT_ID!,
-//     clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
-//     callbackURL: '/api/auth/facebook/callback',
-//     profileFields: ['id', 'emails', 'name']
-// }, async (accessToken, refreshToken, profile, done) => {
-//     try {
-//         const email = profile.emails?.[0].value;
-//         if (email) {
-//             const result = await findUserByEmail(email);
-//             if (result.length > 0) {
-//                 const user = result[0] as RowDataPacket & User;
-//                 return done(null, user);
-//             } else {
-//                 const newUser: NewUser = {
-//                     email,
-//                     password: '', // No password for OAuth
-//                     created_at: new Date(),
-//                     updated_at: new Date(),
-//                     logout_at: new Date(),
-//                 };
-//                 await createUser(newUser);
-//                 return done(null, newUser);
-//             }
-//         } else {
-//             return done(null, false, { message: 'No email associated with Facebook account' });
-//         }
-//     } catch (err) {
-//         return done(err);
-//     }
-// }));
+// Passport setup for Facebook strategy
+passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_CLIENT_ID!,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+    callbackURL: '/api/auth/facebook/callback',
+    profileFields: ['id', 'emails', 'name']
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        const email = profile.emails?.[0].value;
+        if (email) {
+            const result = await findUserByEmail(email);
+            if (result.length > 0) {
+                const user = result[0] as RowDataPacket & User;
+                return done(null, user);
+            } else {
+                const newUser: NewUser = {
+                    email,
+                    name: profile.displayName,
+                    password: '', // No password for OAuth
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    logout_at: new Date(),
+                };
+                await createUser(newUser);
+                return done(null, newUser);
+            }
+        } else {
+            return done(null, false, { message: 'No email associated with Facebook account' });
+        }
+    } catch (err) {
+        return done(err);
+    }
+}));
 
 // Serialize and deserialize user
 passport.serializeUser((user, done) => {
@@ -118,22 +119,22 @@ const googleAuthRedirect = (req: Request, res: Response) => {
     res.redirect('http://localhost:3000/dashboard');
 };
 
-// // Facebook OAuth routes
-// const facebookAuth = passport.authenticate('facebook', { scope: ['email'] });
-// const facebookAuthCallback = passport.authenticate('facebook', { failureRedirect: '/' });
+// Facebook OAuth routes
+const facebookAuth = passport.authenticate('facebook', { scope: ['email'] });
+const facebookAuthCallback = passport.authenticate('facebook', { failureRedirect: 'http://localhost:3000/login' });
 
-// const facebookAuthRedirect = (req: Request, res: Response) => {
-//     const token = jwt.sign({ userId: (req.user as User).id }, process.env.JWT_SECRET!, {
-//         expiresIn: '1h',
-//     });
+const facebookAuthRedirect = (req: Request, res: Response) => {
+    const token = jwt.sign({ userId: (req.user as User).id }, process.env.JWT_SECRET!, {
+        expiresIn: '1h',
+    });
 
-//     res.cookie('token', token, {
-//         httpOnly: true,
-//         secure: process.env.NODE_ENV === 'production',
-//     });
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+    });
 
-//     res.redirect('/dashboard');
-// };
+    res.redirect('http://localhost:3000/dashboard');
+};
 
 // Joi schema for registration validation
 const registerSchema = Joi.object({
@@ -267,7 +268,7 @@ export {
     googleAuth,
     googleAuthCallback,
     googleAuthRedirect,
-    // facebookAuth,
-    // facebookAuthCallback,
-    // facebookAuthRedirect
+    facebookAuth,
+    facebookAuthCallback,
+    facebookAuthRedirect
 };
