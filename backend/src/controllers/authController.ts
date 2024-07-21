@@ -1,15 +1,18 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, User, NewUser } from '../models/userModel';
+import { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, User, NewUser, findUserByVerificationToken } from '../models/userModel';
 import { RowDataPacket } from 'mysql2';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import dotenv from 'dotenv';
 import Joi from 'joi';
+import sgMail from '@sendgrid/mail';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 // Passport setup for Google strategy
 passport.use(new GoogleStrategy({
@@ -103,10 +106,10 @@ passport.deserializeUser(async (id: string, done) => {
 });
 
 // Google OAuth routes
-const googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
-const googleAuthCallback = passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login' });
+export const googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
+export const googleAuthCallback = passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login' });
 
-const googleAuthRedirect = (req: Request, res: Response) => {
+export const googleAuthRedirect = (req: Request, res: Response) => {
     const token = jwt.sign({ userId: (req.user as User).id }, process.env.JWT_SECRET!, {
         expiresIn: '1h',
     });
@@ -120,10 +123,10 @@ const googleAuthRedirect = (req: Request, res: Response) => {
 };
 
 // Facebook OAuth routes
-const facebookAuth = passport.authenticate('facebook', { scope: ['email'] });
-const facebookAuthCallback = passport.authenticate('facebook', { failureRedirect: 'http://localhost:3000/login' });
+export const facebookAuth = passport.authenticate('facebook', { scope: ['email'] });
+export const facebookAuthCallback = passport.authenticate('facebook', { failureRedirect: 'http://localhost:3000/login' });
 
-const facebookAuthRedirect = (req: Request, res: Response) => {
+export const facebookAuthRedirect = (req: Request, res: Response) => {
     const token = jwt.sign({ userId: (req.user as User).id }, process.env.JWT_SECRET!, {
         expiresIn: '1h',
     });
@@ -147,7 +150,7 @@ const registerSchema = Joi.object({
 });
 
 
-const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
     const { email, password, confirmPassword } = req.body;
 
     // Validate request body against schema
@@ -166,17 +169,91 @@ const register = async (req: Request, res: Response) => {
         created_at: new Date(),
         updated_at: new Date(),
         logout_at: new Date(),
+        is_verified: false,
+        verification_token: uuidv4()
     };
 
     try {
         await createUser(user);
+
+        // Send verification email
+        await sendVerificationEmail(email, user.verificationToken);
+
         res.status(201).send('User created');
     } catch (err) {
         res.status(500).send('Error creating user');
     }
 };
 
-const login = async (req: Request, res: Response) => {
+export const sendVerificationEmail = async (email: string, token: string) => {
+    const msg = {
+        to: email,
+        from: 'your-email@example.com', // Your verified sender email
+        subject: 'Email Verification',
+        text: `Please verify your email by clicking the following link: ${process.env.FRONTEND_URL}/verify-email?token=${token}`,
+        html: `<strong>Please verify your email by clicking the following link: <a href="${process.env.FRONTEND_URL}/verify-email?token=${token}">Verify Email</a></strong>`,
+    };
+
+    await sgMail.send(msg);
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+    const token = req.query.token as string;
+
+    if (!token) {
+        return res.status(400).json({ error: 'Token is required' });
+    }
+
+    try {
+        const result = await findUserByVerificationToken(token);
+
+        if (result) {
+            const user = result[0] as RowDataPacket & User;
+
+            if (!user) {
+                return res.status(400).json({ error: 'Invalid token' });
+            }
+
+            user.emailVerified = true;
+            user.verificationToken = undefined;
+            await user.save();
+
+            res.status(200).json({ message: 'Email verified successfully' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Email verification failed' });
+    }
+};
+
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    try {
+        const result = await findUserByEmail(email);
+
+        const user = result[0] as RowDataPacket & User;
+
+        if (!user) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
+        if (user.is_verified) {
+            return res.status(400).json({ error: 'Email already verified' });
+        }
+
+        user.verification_token = uuidv4();
+        await user.save();
+
+        // Send verification email
+        await sendVerificationEmail(email, user.verification_token);
+
+        res.status(200).json({ message: 'Verification email sent' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to resend verification email' });
+    }
+};
+
+export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     try {
@@ -222,7 +299,7 @@ const login = async (req: Request, res: Response) => {
     }
 };
 
-const logout = async (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
         const result = await findUserByEmail(email);
@@ -259,16 +336,4 @@ const logout = async (req: Request, res: Response) => {
     } catch (err) {
         res.status(500).send('Error logging out');
     }
-};
-
-export {
-    register,
-    login,
-    logout,
-    googleAuth,
-    googleAuthCallback,
-    googleAuthRedirect,
-    facebookAuth,
-    facebookAuthCallback,
-    facebookAuthRedirect
 };

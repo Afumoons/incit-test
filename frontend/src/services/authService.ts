@@ -14,36 +14,42 @@ axios.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
-const register = (email: string, password: string, confirmPassword: string) => {
+export const register = (email: string, password: string, confirmPassword: string) => {
     return axios.post(`${API_URL}/register`, { email, password, confirmPassword });
 };
 
-const login = (email: string, password: string) => {
+export const verifyEmail = (token: string) => {
+    return axios.get(`${API_URL}/verify-email`, { params: { token } });
+};
+
+export const resendVerificationEmail = (email: string | undefined) => {
+    return axios.post(`${API_URL}/resend-verification-email`, { email });
+};
+
+export const login = (email: string, password: string) => {
     return axios.post(`${API_URL}/login`, { email, password });
 };
 
-const logout = (email: string | undefined) => {
+export const logout = (email: string | undefined) => {
     return axios.post(`${API_URL}/logout`, { email });
 };
 
-const getAllUsers = () => {
+export const getAllUsers = () => {
     return axios.get(`${API_URL}/users`);
 };
 
-const getDashboardStatistics = () => {
+export const getDashboardStatistics = () => {
     return axios.get(`${API_URL}/dashboard-statistic`);
 };
 
-const getProfileData = (email: string | undefined) => {
+export const getProfileData = (email: string | undefined) => {
     return axios.post(`${API_URL}/get-profile`, { email });
 };
 
-const changeProfile = (email: string | undefined, name: string) => {
+export const changeProfile = (email: string | undefined, name: string) => {
     return axios.put(`${API_URL}/change-profile`, { email, name });
 };
 
-const changePassword = (email: string | undefined, oldPassword: string, newPassword: string) => {
+export const changePassword = (email: string | undefined, oldPassword: string, newPassword: string) => {
     return axios.put(`${API_URL}/change-password`, { email, oldPassword, newPassword });
 };
-
-export { register, login, logout, getAllUsers, getDashboardStatistics, getProfileData, changeProfile, changePassword };

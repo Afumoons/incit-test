@@ -2,7 +2,9 @@ import { Router } from 'express';
 import {
     register, login, logout,
     googleAuth, googleAuthCallback, googleAuthRedirect,
-    facebookAuth, facebookAuthCallback, facebookAuthRedirect
+    facebookAuth, facebookAuthCallback, facebookAuthRedirect,
+    verifyEmail,
+    resendVerificationEmail
 } from '../controllers/authController';
 import { changePassword, getAllUsers, getProfileData, getTotalUserStatistics, updateProfile } from '../controllers/userController';
 import { authenticateToken, ensureAuthenticated } from '../middlewares/authMiddleware';
@@ -17,6 +19,8 @@ router.get('/dashboard-statistic', getTotalUserStatistics);
 router.post('/get-profile', getProfileData);
 router.put('/change-profile', authenticateToken, updateProfile);
 router.put('/change-password', authenticateToken, changePassword);
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification-email', resendVerificationEmail);
 
 // Google OAuth routes
 router.get('/google', googleAuth);

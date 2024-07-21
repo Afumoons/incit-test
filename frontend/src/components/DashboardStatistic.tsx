@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { getDashboardStatistics } from "../services/authService";
 
-interface DashboardStatistic {
+interface DashboardStatisticInterface {
   totalUsers: number;
   activeUsersToday: number;
   avgActiveUsersLast7Days: number;
 }
 
 const DashboardStatistic: React.FC = () => {
-  const [statistic, setStatistic] = useState<DashboardStatistic>({
+  const [statistic, setStatistic] = useState<DashboardStatisticInterface>({
     totalUsers: 0,
     activeUsersToday: 0,
     avgActiveUsersLast7Days: 0,
