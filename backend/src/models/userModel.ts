@@ -6,6 +6,8 @@ interface User extends RowDataPacket {
     name: string;
     email: string;
     password: string;
+    is_verified: boolean;
+    verification_token: string;
     created_at: Date;
     updated_at: Date;
     login_count: number;
@@ -37,6 +39,17 @@ const findUserById = async (id: number | string): Promise<User | null> => {
     const [rows] = await pool.query<User[]>(
         'SELECT * FROM users WHERE id = ?',
         [id]
+    );
+    if (rows.length > 0) {
+        return rows[0];
+    }
+    return null;
+};
+
+const findUserByVerificationToken = async (token: string): Promise<User | null> => {
+    const [rows] = await pool.query<User[]>(
+        'SELECT * FROM users WHERE verification_token = ?',
+        [token]
     );
     if (rows.length > 0) {
         return rows[0];
@@ -126,4 +139,4 @@ const getAverageActiveUsersLast7Days = async (): Promise<number> => {
     return result[0].avg_count;
 };
 
-export { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, getTotalUsers, getActiveUsersToday, getAverageActiveUsersLast7Days, User, NewUser };
+export { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, findUserByVerificationToken, getTotalUsers, getActiveUsersToday, getAverageActiveUsersLast7Days, User, NewUser };
