@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createUser, updateUserLoginInfo, updateUserLogoutInfo, findUserByEmail, findUserById, User, NewUser } from '../models/userModel';
+import { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, User, NewUser } from '../models/userModel';
 import { RowDataPacket } from 'mysql2';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';

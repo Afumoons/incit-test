@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
 import GuestRoute from "./components/GuestRoute";
+import ProfilePage from "./pages/Profile";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -15,6 +16,10 @@ const AppRoutes: React.FC = () => {
         <Route
           path="/dashboard"
           element={<PrivateRoute component={Dashboard} />}
+        />
+        <Route
+          path="/profile"
+          element={<PrivateRoute component={ProfilePage} />}
         />
         <Route path="/login" element={<GuestRoute component={Login} />} />
         <Route path="/register" element={<GuestRoute component={Register} />} />

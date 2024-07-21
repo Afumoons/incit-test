@@ -32,6 +32,11 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
                 <li>
+                  <Link to="/profile" className="text-blue-500 hover:underline">
+                    Profile
+                  </Link>
+                </li>
+                <li>
                   <button
                     onClick={handleLogout}
                     className="text-red-500 hover:underline"

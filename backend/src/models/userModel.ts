@@ -65,6 +65,22 @@ const updateUserLogoutInfo = async (id: number, user: User) => {
     return result;
 };
 
+const updateUserName = async (id: number, user: User) => {
+    const [result] = await pool.query(
+        'UPDATE users SET name = ? WHERE id = ?',
+        [user.name, id]
+    );
+    return result;
+};
+
+const updateUserPassword = async (id: number, user: User) => {
+    const [result] = await pool.query(
+        'UPDATE users SET password = ? WHERE id = ?',
+        [user.password, id]
+    );
+    return result;
+};
+
 const deleteUser = async (id: number) => {
     const [result] = await pool.query(
         'DELETE FROM users WHERE id = ?',
@@ -110,4 +126,4 @@ const getAverageActiveUsersLast7Days = async (): Promise<number> => {
     return result[0].avg_count;
 };
 
-export { createUser, updateUserLoginInfo, updateUserLogoutInfo, findUserByEmail, findUserById, getTotalUsers, getActiveUsersToday, getAverageActiveUsersLast7Days, User, NewUser };
+export { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, getTotalUsers, getActiveUsersToday, getAverageActiveUsersLast7Days, User, NewUser };
