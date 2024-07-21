@@ -70,34 +70,38 @@ This project is a modern web application for user authentication and management,
     yarn install
     ```
 
-3. **Configure environment variables:**
-   Create a `.env` file in the root directory and add the following:
-    ```plaintext
-    JWT_SECRET=your_jwt_secret
-    DB_HOST=your_db_host
-    DB_PORT=your_db_port
-    DB_USER=your_db_user
-    DB_PASSWORD=your_db_password
-    DB_NAME=your_db_name
-    NODE_ENV=development
-    REACT_APP_API_URL=http://localhost:5000/api
-    ```
-
-4. **Set up the database:**
-    ```bash
-    npx sequelize-cli db:migrate
+3. **Set up the users table:**
+    ```sql
+    CREATE TABLE users (
+        id INT(10) NOT NULL AUTO_INCREMENT,
+        name VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_0900_ai_ci',
+        email VARCHAR(255) NOT NULL COLLATE 'utf8mb4_0900_ai_ci',
+        password VARCHAR(255) NOT NULL COLLATE 'utf8mb4_0900_ai_ci',
+        verification_token VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_0900_ai_ci',
+        is_verified TINYINT(1) NULL DEFAULT '0',
+        created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        login_count INT(10) NULL DEFAULT '0',
+        last_login_at DATETIME NULL DEFAULT NULL,
+        logout_at DATETIME NULL DEFAULT NULL,
+        PRIMARY KEY (id) USING BTREE,
+        UNIQUE INDEX email (email) USING BTREE
+      )
     ```
 
 5. **Start the backend server:**
     ```bash
-    npm run dev
+    cd backend
+    npm run build
+    npm start
     # or
     yarn dev
     ```
 
 6. **Start the frontend development server:**
     ```bash
-    cd client
+    cd frontend
+    npm run build
     npm start
     # or
     yarn start
@@ -109,10 +113,6 @@ This project is a modern web application for user authentication and management,
 - Register a new user or log in using Google or Facebook OAuth.
 - Manage your profile and change your password.
 - Access the dashboard to view user statistics and details.
-
-## Contributing
-
-Contributions are welcome! Please submit a pull request or open an issue to discuss changes.
 
 ## License
 
