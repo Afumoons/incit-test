@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-    register, login, logout,
+    register, login, logout, protectedData,
     googleAuth, googleAuthCallback, googleAuthRedirect,
     facebookAuth, facebookAuthCallback, facebookAuthRedirect,
     verifyEmail,
@@ -13,6 +13,7 @@ const router = Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.get('/protected-data', protectedData);
 router.post('/logout', logout);
 router.get('/users', getAllUsers);
 router.get('/dashboard-statistic', getTotalUserStatistics);

@@ -5,7 +5,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 // Set up axios interceptor to include token in headers
 axios.interceptors.request.use((config) => {
-    const token = Cookies.get('token');
+    const token = Cookies.get("token");
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,7 +27,11 @@ export const resendVerificationEmail = (email: string | undefined) => {
 };
 
 export const login = (email: string, password: string) => {
-    return axios.post(`${API_URL}/login`, { email, password });
+    return axios.post(`${API_URL}/login`, { email, password }, { withCredentials: true });
+};
+
+export const protectedData = () => {
+    return axios.get(`${API_URL}/protected-data`, { withCredentials: true });
 };
 
 export const logout = (email: string | undefined) => {

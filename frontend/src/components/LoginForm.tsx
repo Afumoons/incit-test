@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
-import Cookies from "js-cookie";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginForm: React.FC = () => {
@@ -13,10 +12,7 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await login(email, password);
-      const { token, user } = response.data;
-      Cookies.set("token", token);
-      Cookies.set("email", user.email);
+      await login(email, password);
       navigate("/dashboard");
     } catch (err) {
       console.error("Login failed", err);

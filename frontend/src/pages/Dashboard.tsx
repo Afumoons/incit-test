@@ -14,7 +14,6 @@ const Dashboard: React.FC = () => {
     // Fetch user data
     const fetchUserData = async () => {
       const response = await getProfileData(Cookies.get("email"));
-
       setIsVerified(response.data[0].is_verified);
     };
 

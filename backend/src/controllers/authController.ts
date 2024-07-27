@@ -286,7 +286,7 @@ export const login = async (req: Request, res: Response) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-        });
+        })
 
         req.logIn(user, (err) => {
             if (err) {
@@ -297,6 +297,15 @@ export const login = async (req: Request, res: Response) => {
     } catch (err) {
         res.status(500).send('Error logging in' + err);
     }
+};
+
+export const protectedData = async (req: Request, res: Response) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    // Ambil data yang dilindungi
+    res.status(200).json({ token: req.cookies.token, user: req.user });
 };
 
 export const logout = async (req: Request, res: Response) => {
