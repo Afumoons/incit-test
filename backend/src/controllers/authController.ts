@@ -32,6 +32,7 @@ passport.use(new GoogleStrategy({
                     email,
                     name: profile.displayName,
                     password: '', // No password for OAuth
+                    is_verified: true,
                     created_at: new Date(),
                     updated_at: new Date(),
                     logout_at: new Date(),
@@ -66,6 +67,7 @@ passport.use(new FacebookStrategy({
                     email,
                     name: profile.displayName,
                     password: '', // No password for OAuth
+                    is_verified: true,
                     created_at: new Date(),
                     updated_at: new Date(),
                     logout_at: new Date(),
@@ -286,7 +288,7 @@ export const login = async (req: Request, res: Response) => {
         res.cookie('token', token, {
             httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
-        })
+        });
 
         req.logIn(user, (err) => {
             if (err) {

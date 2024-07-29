@@ -21,8 +21,8 @@ interface NewUser extends Omit<User, 'id' | 'login_count'> {
 
 const createUser = async (user: NewUser) => {
     const [result] = await pool.query(
-        'INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, NOW())',
-        [user.name, user.email, user.password, user.created_at]
+        'INSERT INTO users (name, email, password, is_verified, created_at) VALUES (?, ?, ?, ?, NOW())',
+        [user.name, user.email, user.password, user.is_verified, user.created_at]
     );
     return result;
 };
