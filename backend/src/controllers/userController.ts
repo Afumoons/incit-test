@@ -79,7 +79,11 @@ export const changePassword = async (req: Request, res: Response) => {
         const result = await findUserByEmail(email);
 
         const user = result[0] as RowDataPacket & User;
-        const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        // if user password is not null then compare the password
+        let isPasswordValid = true;
+        if (user.password) {
+            isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        }
 
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Old password is incorrect' });

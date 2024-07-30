@@ -12,6 +12,10 @@ interface IFormInput {
   confirmPassword: string;
 }
 
+interface Props {
+  nullPasswordStatus: boolean;
+}
+
 const schema = yup.object().shape({
   oldPassword: yup.string().required("Old password is required"),
   newPassword: yup
@@ -31,7 +35,7 @@ const schema = yup.object().shape({
     .required("Confirm password is required"),
 });
 
-const PasswordChangeForm: React.FC = () => {
+const PasswordChangeForm: React.FC<Props> = ({ nullPasswordStatus }) => {
   const {
     register,
     handleSubmit,
@@ -74,7 +78,7 @@ const PasswordChangeForm: React.FC = () => {
       onSubmit={handleSubmit(onSubmit)}
       className="mb-4 bg-white p-4 rounded shadow"
     >
-      <div>
+      <div className={nullPasswordStatus ? "d-none" : ""}>
         <label className="block text-sm font-bold mb-2">Old Password</label>
         <div className="relative">
           <input
@@ -96,6 +100,7 @@ const PasswordChangeForm: React.FC = () => {
           <p className="text-red-500 text-sm">{errors.oldPassword.message}</p>
         )}
       </div>
+
       <div>
         <label className="block text-sm font-bold mb-2">New Password</label>
         <div className="relative">

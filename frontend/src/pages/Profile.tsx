@@ -9,6 +9,7 @@ import Cookies from "js-cookie";
 const ProfilePage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [nullPasswordStatus, setNullPasswordStatus] = useState(true);
 
   useEffect(() => {
     // Fetch user data
@@ -17,6 +18,10 @@ const ProfilePage: React.FC = () => {
 
       setEmail(response.data[0].email);
       setName(response.data[0].name);
+
+      if (response.data[0].password !== "") {
+        setNullPasswordStatus(false);
+      }
     };
 
     fetchUserData();
@@ -36,7 +41,7 @@ const ProfilePage: React.FC = () => {
           </p>
         </div>
         <NameChangeForm currentName={name} setName={setName} />
-        <PasswordChangeForm />
+        <PasswordChangeForm nullPasswordStatus={nullPasswordStatus} />
       </main>
       <Footer />
     </div>
