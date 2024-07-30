@@ -1,13 +1,13 @@
 import pool from '../utils/db';
 import { RowDataPacket } from 'mysql2';
 
-interface User extends RowDataPacket {
+export interface User extends RowDataPacket {
     id: number;
     name: string;
     email: string;
     password: string;
     is_verified: boolean;
-    verification_token: string;
+    verification_token: string | null;
     created_at: Date;
     updated_at: Date;
     login_count: number;
@@ -15,19 +15,19 @@ interface User extends RowDataPacket {
     logout_at: Date;
 }
 
-interface NewUser extends Omit<User, 'id' | 'login_count'> {
+export interface NewUser extends Omit<User, 'id' | 'login_count'> {
     login_count?: number;
 }
 
-const createUser = async (user: NewUser) => {
+export const createUser = async (user: NewUser) => {
     const [result] = await pool.query(
-        'INSERT INTO users (name, email, password, is_verified, created_at) VALUES (?, ?, ?, ?, NOW())',
-        [user.name, user.email, user.password, user.is_verified, user.created_at]
+        'INSERT INTO users (name, email, password, is_verified, verification_token, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+        [user.name, user.email, user.password, user.is_verified, user.verification_token, user.created_at]
     );
     return result;
 };
 
-const findUserByEmail = async (email: string): Promise<User[]> => {
+export const findUserByEmail = async (email: string): Promise<User[]> => {
     const [rows] = await pool.query<User[]>(
         'SELECT * FROM users WHERE email = ?',
         [email]
@@ -35,7 +35,7 @@ const findUserByEmail = async (email: string): Promise<User[]> => {
     return rows;
 };
 
-const findUserById = async (id: number | string): Promise<User | null> => {
+export const findUserById = async (id: number | string): Promise<User | null> => {
     const [rows] = await pool.query<User[]>(
         'SELECT * FROM users WHERE id = ?',
         [id]
@@ -46,7 +46,7 @@ const findUserById = async (id: number | string): Promise<User | null> => {
     return null;
 };
 
-const findUserByVerificationToken = async (token: string): Promise<User | null> => {
+export const findUserByVerificationToken = async (token: string): Promise<User | null> => {
     const [rows] = await pool.query<User[]>(
         'SELECT * FROM users WHERE verification_token = ?',
         [token]
@@ -62,7 +62,7 @@ export const findAllUsers = async (): Promise<User[]> => {
     return rows as User[];
 };
 
-const updateUserLoginInfo = async (id: number, user: User) => {
+export const updateUserLoginInfo = async (id: number, user: User) => {
     const [result] = await pool.query(
         'UPDATE users SET login_count = ?, last_login_at = ?, updated_at = ? WHERE id = ?',
         [user.login_count, user.last_login_at, user.updated_at, id]
@@ -70,7 +70,7 @@ const updateUserLoginInfo = async (id: number, user: User) => {
     return result;
 };
 
-const updateUserLogoutInfo = async (id: number, user: User) => {
+export const updateUserLogoutInfo = async (id: number, user: User) => {
     const [result] = await pool.query(
         'UPDATE users SET logout_at = ?, updated_at = ? WHERE id = ?',
         [user.logout_at, user.updated_at, id]
@@ -78,7 +78,7 @@ const updateUserLogoutInfo = async (id: number, user: User) => {
     return result;
 };
 
-const updateUserName = async (id: number, user: User) => {
+export const updateUserName = async (id: number, user: User) => {
     const [result] = await pool.query(
         'UPDATE users SET name = ? WHERE id = ?',
         [user.name, id]
@@ -86,10 +86,26 @@ const updateUserName = async (id: number, user: User) => {
     return result;
 };
 
-const updateUserPassword = async (id: number, user: User) => {
+export const updateUserPassword = async (id: number, user: User) => {
     const [result] = await pool.query(
         'UPDATE users SET password = ? WHERE id = ?',
         [user.password, id]
+    );
+    return result;
+};
+
+export const updateUserVerificationToken = async (id: number, user: User) => {
+    const [result] = await pool.query(
+        'UPDATE users SET verification_token = ? WHERE id = ?',
+        [user.verification_token, id]
+    );
+    return result;
+};
+
+export const updateUserVerificationStatus = async (id: number, user: User) => {
+    const [result] = await pool.query(
+        'UPDATE users SET is_verified = ?, verification_token = ? WHERE id = ?',
+        [user.is_verified, user.verification_token, id]
     );
     return result;
 };
@@ -110,7 +126,7 @@ const getAllUsers = async (): Promise<User[]> => {
 };
 
 // Get total number of users
-const getTotalUsers = async (): Promise<number> => {
+export const getTotalUsers = async (): Promise<number> => {
     const query = 'SELECT COUNT(*) as count FROM users';
     const [rows] = await pool.execute(query);
     const result = rows as RowDataPacket[];
@@ -118,7 +134,7 @@ const getTotalUsers = async (): Promise<number> => {
 };
 
 // Get total number of users with active sessions today
-const getActiveUsersToday = async (): Promise<number> => {
+export const getActiveUsersToday = async (): Promise<number> => {
     const query = 'SELECT COUNT(*) as count FROM users WHERE DATE(updated_at) = CURDATE()';
     const [rows] = await pool.execute(query);
     const result = rows as RowDataPacket[];
@@ -126,7 +142,7 @@ const getActiveUsersToday = async (): Promise<number> => {
 };
 
 // Get average number of active session users in the last 7 days
-const getAverageActiveUsersLast7Days = async (): Promise<number> => {
+export const getAverageActiveUsersLast7Days = async (): Promise<number> => {
     const query = `
         SELECT AVG(daily_count) as avg_count FROM (
             SELECT COUNT(*) as daily_count 
@@ -138,5 +154,3 @@ const getAverageActiveUsersLast7Days = async (): Promise<number> => {
     const result = rows as RowDataPacket[];
     return result[0].avg_count;
 };
-
-export { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, findUserByVerificationToken, getTotalUsers, getActiveUsersToday, getAverageActiveUsersLast7Days, User, NewUser };

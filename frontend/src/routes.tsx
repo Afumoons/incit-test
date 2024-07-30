@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
 import GuestRoute from "./components/GuestRoute";
 import ProfilePage from "./pages/Profile";
+import VerifyEmail from "./pages/VerifyEmail";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ const AppRoutes: React.FC = () => {
         />
         <Route path="/login" element={<GuestRoute component={Login} />} />
         <Route path="/register" element={<GuestRoute component={Register} />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />"
       </Routes>
     </Router>
   );

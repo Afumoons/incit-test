@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, User, NewUser, findUserByVerificationToken } from '../models/userModel';
+import { createUser, updateUserLoginInfo, updateUserLogoutInfo, updateUserName, updateUserPassword, findUserByEmail, findUserById, User, NewUser, findUserByVerificationToken, updateUserVerificationToken, updateUserVerificationStatus } from '../models/userModel';
 import { RowDataPacket } from 'mysql2';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
@@ -10,6 +10,8 @@ import dotenv from 'dotenv';
 import Joi from 'joi';
 import sgMail from '@sendgrid/mail';
 import { v4 as uuidv4 } from 'uuid';
+import nodemailer from 'nodemailer';
+import { sendVerificationEmail } from '../utils/emailService';
 
 dotenv.config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
@@ -37,9 +39,8 @@ passport.use(new GoogleStrategy({
                     name: profile.displayName,
                     password: '', // No password for OAuth
                     is_verified: true,
+                    verification_token: null,
                     created_at: new Date(),
-                    updated_at: new Date(),
-                    logout_at: new Date(),
                 };
 
                 const result = await createUser(user);
@@ -81,9 +82,8 @@ passport.use(new FacebookStrategy({
                     name: profile.displayName,
                     password: '', // No password for OAuth
                     is_verified: true,
+                    verification_token: null,
                     created_at: new Date(),
-                    updated_at: new Date(),
-                    logout_at: new Date(),
                 };
                 await createUser(newUser);
                 return done(null, newUser);
@@ -181,35 +181,21 @@ export const register = async (req: Request, res: Response) => {
         email,
         name: '',
         password: hashedPassword,
-        created_at: new Date(),
-        updated_at: new Date(),
-        logout_at: new Date(),
         is_verified: false,
-        verification_token: uuidv4()
+        verification_token: uuidv4(),
+        created_at: new Date(),
     };
 
     try {
         await createUser(user);
 
         // Send verification email
-        await sendVerificationEmail(email, user.verificationToken);
+        await sendVerificationEmail(email, user.verification_token);
 
         res.status(201).send('User created');
     } catch (err) {
-        res.status(500).send('Error creating user');
+        res.status(500).send('Error creating user ' + err);
     }
-};
-
-export const sendVerificationEmail = async (email: string, token: string) => {
-    const msg = {
-        to: email,
-        from: 'your-email@example.com', // Your verified sender email
-        subject: 'Email Verification',
-        text: `Please verify your email by clicking the following link: ${process.env.FRONTEND_URL}/verify-email?token=${token}`,
-        html: `<strong>Please verify your email by clicking the following link: <a href="${process.env.FRONTEND_URL}/verify-email?token=${token}">Verify Email</a></strong>`,
-    };
-
-    await sgMail.send(msg);
 };
 
 export const verifyEmail = async (req: Request, res: Response) => {
@@ -221,17 +207,24 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
     try {
         const result = await findUserByVerificationToken(token);
+        console.log(token, result);
+
 
         if (result) {
-            const user = result[0] as RowDataPacket & User;
+            const user = result as RowDataPacket & User;
 
             if (!user) {
                 return res.status(400).json({ error: 'Invalid token' });
             }
 
-            user.emailVerified = true;
-            user.verificationToken = undefined;
-            await user.save();
+            await updateUserVerificationStatus(
+                user.id,
+                {
+                    ...user,
+                    is_verified: true,
+                    verification_token: null
+                }
+            );
 
             res.status(200).json({ message: 'Email verified successfully' });
         }
@@ -257,14 +250,14 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
         }
 
         user.verification_token = uuidv4();
-        await user.save();
+        await updateUserVerificationToken(user.id, { ...user, verification_token: user.verification_token })
 
         // Send verification email
         await sendVerificationEmail(email, user.verification_token);
 
         res.status(200).json({ message: 'Verification email sent' });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to resend verification email' });
+        res.status(500).json({ error: 'Failed to resend verification email ' + err });
     }
 };
 
