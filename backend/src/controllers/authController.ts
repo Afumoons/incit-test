@@ -26,9 +26,13 @@ passport.use(new GoogleStrategy({
             const result = await findUserByEmail(email);
             if (result.length > 0) {
                 const user = result[0] as RowDataPacket & User;
+
+                // update login information
+                await updateLoginInfo(user);
+
                 return done(null, user);
             } else {
-                const newUser: NewUser = {
+                const user: NewUser = {
                     email,
                     name: profile.displayName,
                     password: '', // No password for OAuth
@@ -37,9 +41,18 @@ passport.use(new GoogleStrategy({
                     updated_at: new Date(),
                     logout_at: new Date(),
                 };
-                await createUser(newUser);
-                return done(null, newUser);
+
+                const result = await createUser(user);
+
+                if (result) {
+                    const getUser = await findUserByEmail(email);
+                    const user = getUser[0] as RowDataPacket & User;
+                    await updateLoginInfo(user);
+                }
+                return done(null, user);
             }
+
+
         } else {
             return done(null, false, { message: 'No email associated with Google account' });
         }
@@ -274,12 +287,7 @@ export const login = async (req: Request, res: Response) => {
         }
 
         // Increment login count
-        await updateUserLoginInfo(user.id, {
-            ...user,
-            login_count: (user.login_count || 0) + 1,
-            last_login_at: new Date(), // Optionally update the updated_at timestamp
-            updated_at: new Date() // Optionally update the updated_at timestamp
-        });
+        await updateLoginInfo(user);
 
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
             expiresIn: '1h',
@@ -299,6 +307,15 @@ export const login = async (req: Request, res: Response) => {
     } catch (err) {
         res.status(500).send('Error logging in' + err);
     }
+};
+
+const updateLoginInfo = async (user: User) => {
+    await updateUserLoginInfo(user.id, {
+        ...user,
+        login_count: (user.login_count || 0) + 1,
+        last_login_at: new Date(),
+        updated_at: new Date()
+    });
 };
 
 export const protectedData = async (req: Request, res: Response) => {
